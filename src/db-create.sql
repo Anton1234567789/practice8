@@ -17,7 +17,8 @@ CREATE TABLE groups (
 
 CREATE TABLE users_groups(
   user_id INT REFERENCES users(user_id),
-  group_id INT REFERENCES groups(group_id)
+  group_id INT REFERENCES groups(group_id),
+  PRIMARY KEY (user_id, group_id)
 );
 
 INSERT INTO users (login) VALUES ("admin");

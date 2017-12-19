@@ -3,6 +3,16 @@ package ua.nure.sokolov.practice8.entity;
 public class UserGroup {
     private int userId;
     private int groupId;
+    private String name;
+
+    @Override
+    public String toString() {
+        return "UserGroup{" +
+                "userId=" + userId +
+                ", groupId=" + groupId +
+                ", name='" + name + '\'' +
+                '}';
+    }
 
     public int getUserId() {
         return userId;
@@ -20,11 +30,11 @@ public class UserGroup {
         this.groupId = groupId;
     }
 
-    @Override
-    public String toString() {
-        return "UserGroup{" +
-                "userId=" + userId +
-                ", groupId=" + groupId +
-                '}';
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }

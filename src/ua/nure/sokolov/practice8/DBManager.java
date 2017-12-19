@@ -20,14 +20,18 @@ public class DBManager {
     private static final String SQL_GET_ALL_GROUP = "SELECT * FROM groups";
     private static final String SQL_INSERT_GROUP = "INSERT INTO groups (name) VALUES (?);";
     private static final String SQL_FIND_GROUP_BY_NAME = "SELECT * FROM groups g WHERE g.name = ?";
-
-    private static final String SQL_INSER_USER_GROUP = "INSERT INTO users_groups WHERE " +
-            "((SELECT user_id FROM users u WHERE u.login = ?),(SELECT group_id FROM groups g WHERE g.name = ?))";
+    private static final String SQL_GET_USER_GROUP =
+            "SELECT * FROM groups g, users_groups ug WHERE g.group_id = ug.group_id";
+    private static final String SQL_INSERT_USER_GROUP = "INSERT INTO users_groups VALUES " +
+            "((SELECT user_id FROM users u WHERE u.login = ?) ,(SELECT group_id FROM groups g WHERE g.name = ?))";
+    private static final String SQL_INSERT_USER_GROUP2 = "INSERT INTO users_groups VALUES " +
+            "((SELECT user_id FROM users u WHERE u.login = ?) ,(SELECT group_id FROM groups g WHERE g.name = ?))";
+    private static final String SQL_INSERT_USER_GROUP3 = "INSERT INTO users_groups VALUES " +
+            "((SELECT user_id FROM users u WHERE u.login = ?) ,(SELECT group_id FROM groups g WHERE g.name = ?))";
 
 
     private static final String CONNECTION_URL = "jdbc:mysql://localhost:3306/practice8" +
-            "?user=root&password=Aa101010&useSSL=false";
-
+            "?user=testuser&password=testuser&useSSL=false";
 
 
     private static DBManager instance;
@@ -207,28 +211,60 @@ public class DBManager {
         return null;
     }
 
-    public boolean setGroupsForUser(String userLogn, String... groupName)throws SQLException{
+    public boolean setGroupsForUser(User userLogin, Group... groupName)throws SQLException{
         boolean res = false;
         Connection connection = null;
         PreparedStatement preparedStatement= null;
+        PreparedStatement preparedStatement2= null;
+        PreparedStatement preparedStatement3= null;
         ResultSet rs= null;
+        ResultSet rs2= null;
+        ResultSet rs3= null;
+
+        UserGroup userGroup = new UserGroup();
+        UserGroup userGroup2 = new UserGroup();
 
         try {
             connection = getConnection();
             connection.setAutoCommit(false);
 
-            preparedStatement = connection.prepareStatement(SQL_INSER_USER_GROUP);
-            int k = 1;
-            preparedStatement.setString(k++, userLogn);
-            preparedStatement.setString(k++, String.valueOf(groupName));
+            preparedStatement = connection.prepareStatement(SQL_INSERT_USER_GROUP, Statement.RETURN_GENERATED_KEYS);
+            preparedStatement2 = connection.prepareStatement(SQL_INSERT_USER_GROUP2, Statement.RETURN_GENERATED_KEYS);
+            preparedStatement3 = connection.prepareStatement(SQL_INSERT_USER_GROUP3, Statement.RETURN_GENERATED_KEYS);
 
-            if (preparedStatement.executeUpdate() > 0){
-                if (rs.next()){
+            if (userLogin == null || userGroup == null){
+                throw new NullPointerException("\"Don't exist group or user. Check your users\"");
 
-                    res = true;
-                }
             }
 
+//            for (int j = 0; j < groupName.length; j++){
+//                if (groupName[j]!=null) {
+                    int k = 1;
+                    preparedStatement.setString(k++, userLogin.getLogin());
+                    preparedStatement.setString(k++, groupName[0].getName());
+//                    preparedStatement.setString(k++, groupName[1].getName());
+
+            k = 1;
+            preparedStatement2.setString(k++, userLogin.getLogin());
+            preparedStatement2.setString(k++, groupName[1].getName());
+//                }
+//            }
+
+            if (preparedStatement.executeUpdate() > 0){
+                if (preparedStatement2.executeUpdate() > 0) {
+                    rs = preparedStatement.getGeneratedKeys();
+                    rs2 = preparedStatement2.getGeneratedKeys();
+                    if (rs.next()) {
+                        if (rs2.next()) {
+                            userGroup.setUserId(rs.getInt("user_id"));
+                            userGroup.setGroupId(rs.getInt("group_id"));
+                            userGroup2.setUserId(rs2.getInt("user_id"));
+                            userGroup2.setGroupId(rs2.getInt("group_id"));
+                            res = true;
+                        }
+                    }
+                }
+            }
             connection.commit();
 
         } catch (SQLException e) {
@@ -240,6 +276,30 @@ public class DBManager {
             close(rs);
         }
         return res;
+    }
+
+    public List<UserGroup> getUserGroup() throws SQLException, DBException {
+        List<UserGroup> groups = new ArrayList<>();
+        Connection connection = null;
+        Statement statement= null;
+        ResultSet rs= null;
+        try {
+            connection = getConnection();
+            statement = connection.createStatement();
+
+            rs = statement.executeQuery(SQL_GET_USER_GROUP);
+            while (rs.next()){
+                UserGroup userGroup = extractUserGroup(rs);
+                groups.add(userGroup);
+            }
+            return groups;
+        }catch (SQLException ex){
+            throw new DBException("Cannot find all user group in table users_groups", ex);
+        }finally {
+            close(connection);
+            close(statement);
+            close(rs);
+        }
     }
 
 //    public boolean deleteUser(int id) throws SQLException, DBException {
@@ -291,6 +351,16 @@ public class DBManager {
 //        return res;
 //
 //    }
+
+    private UserGroup extractUserGroup(ResultSet rs) throws SQLException {
+        UserGroup userGroup = new UserGroup();
+
+        userGroup.setUserId(rs.getInt("user_id"));
+        userGroup.setGroupId(rs.getInt("group_id"));
+        userGroup.setName(rs.getString("name"));
+
+        return userGroup;
+    }
 
     public Connection getConnection() throws SQLException {
         Connection connection = DriverManager.getConnection(CONNECTION_URL);
