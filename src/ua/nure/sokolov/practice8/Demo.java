@@ -20,16 +20,19 @@ public class Demo {
 
         // Part 1
         dbManager.insertUser(User.createUser("petrov"));
+        dbManager.insertUser(User.createUser("ivanov"));
         dbManager.insertUser(User.createUser("obama"));
 
         printList(dbManager.findAllUsers());
+        System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 
         //Part 2
         dbManager.insertGroup(Group.createGroup("teamA"));
+        dbManager.insertGroup(Group.createGroup("teamB"));
         dbManager.insertGroup(Group.createGroup("teamC"));
 
         printList(dbManager.findAllGroups());
-
+        System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~");
         //Part 3
 
         User userPetrov = dbManager.findUserByLogin("petrov");
@@ -41,8 +44,9 @@ public class Demo {
         Group teamC = dbManager.findGroupByName("teamC");
 
         // method setGroupsForUser must implement transaction!
-//        dbManager.setGroupsForUser(userPetrov, teamA);
-        dbManager.setGroupsForUser(userObama, teamA, teamC);
+        dbManager.setGroupsForUser(userIvanov, teamA);
+        dbManager.setGroupsForUser(userPetrov, teamA, teamB);
+        dbManager.setGroupsForUser(userObama, teamA, teamB, teamC);
 
         printList(dbManager.getUserGroup());
 
