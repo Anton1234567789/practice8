@@ -208,7 +208,7 @@ public class DBManager {
     }
 
 
-    public void setGroupsForUser(User userLogin, Group... groupName)throws SQLException{
+    public void setGroupsForUser(User userLogin, Group... groupName) throws SQLException, DBException {
         Connection connection = null;
         PreparedStatement preparedStatement= null;
 
@@ -219,7 +219,7 @@ public class DBManager {
             preparedStatement = connection.prepareStatement(SQL_INSERT_USER_GROUP);
 
             if (userLogin == null || groupName == null){
-                throw new NullPointerException("\"Don't exist group or user. Check your users\"");
+                throw new DBException("Cannot find user: " +  userLogin.getLogin() + ", or group: " + groupName);
             }
 
             for (int j = 0; j < groupName.length; j++){
