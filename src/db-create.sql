@@ -16,9 +16,15 @@ CREATE TABLE groups (
 );
 
 CREATE TABLE users_groups(
-  user_id INT REFERENCES users(user_id),
-  group_id INT REFERENCES groups(group_id),
-  PRIMARY KEY (user_id, group_id)
+  user_id INT,
+  group_id INT,
+  PRIMARY KEY (user_id, group_id),
+  FOREIGN KEY (user_id) REFERENCES users(user_id)
+    ON DELETE CASCADE 
+    ON UPDATE CASCADE,
+  FOREIGN KEY (group_id) REFERENCES groups(group_id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
 );
 
 INSERT INTO users (login) VALUES ("admin");

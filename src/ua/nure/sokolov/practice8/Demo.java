@@ -51,5 +51,20 @@ public class Demo {
         printList(dbManager.getUserGroup());
 
         System.out.println("===========================");
+
+        // Part 4
+
+        // on delete cascade!
+        dbManager.deleteGroup(teamA);
+
+        System.out.println("===========================");
+
+        // Part 5
+
+        teamC.setName("teamX");
+        dbManager.updateGroup(teamC);
+
+        printList(dbManager.findAllGroups());
+        // groups ==> [teamB, teamX]
     }
 }

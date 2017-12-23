@@ -25,9 +25,11 @@ public class DBManager {
     private static final String SQL_INSERT_USER_GROUP = "INSERT INTO users_groups VALUES " +
             "((SELECT user_id FROM users u WHERE u.login = ?) ,(SELECT group_id FROM groups g WHERE g.name = ?))";
 
+    private static final String SQL_DELETE_GROUP = "DELETE FROM groups WHERE name = ?";
+    private static final String SQL_UPDATE_GROUP = "UPDATE groups SET name = ? WHERE group_id = ?";
 
     private static final String CONNECTION_URL = "jdbc:mysql://localhost:3306/practice8" +
-            "?user=testuser&password=testuser&useSSL=false";
+            "?user=root&password=Aa101010&useSSL=false";
 
 
     private static DBManager instance;
@@ -343,4 +345,51 @@ public class DBManager {
         }
     }
 
+    public boolean deleteGroup(Group teamA) throws DBException {
+        boolean res = false;
+
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet rs = null;
+
+        try {
+            connection = getConnection();
+            preparedStatement = connection.prepareStatement(SQL_DELETE_GROUP);
+            preparedStatement.setString(1, teamA.getName());
+            preparedStatement.execute();
+        }catch (SQLException e){
+            throw new DBException("Cannot delete a group with id:" +  teamA.getGroupId(), e);
+        }finally {
+            close(connection);
+            close(preparedStatement);
+            close(rs);
+        }
+
+        return res;
+
+    }
+
+    public boolean updateGroup(Group teamC) throws DBException {
+        boolean res = false;
+        Connection con = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+
+        try {
+            con = getConnection();
+            pstmt = con.prepareStatement(SQL_UPDATE_GROUP);
+
+            int k = 1;
+            pstmt.setString(k++, teamC.getName());
+            pstmt.setInt(k++, teamC.getGroupId());
+            pstmt.executeUpdate();
+        } catch (SQLException ex) {
+            throw new DBException("Cannot update a group:" +  teamC.getName(), ex);
+        } finally {
+            close(con);
+            close(pstmt);
+            close(rs);
+        }
+        return res;
+    }
 }
